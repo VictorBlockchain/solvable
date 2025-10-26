@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Address } from 'viem'
 import { sendContractTx, getGame } from '@/lib/onchain'
+import { upsertGameRow } from '@/lib/indexer'
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
     const valueWei = BigInt(amountWei)
     const args: [bigint, bigint] = [id, valueWei]
     const { hash, receipt } = await sendContractTx({ functionName: 'donateToGame', args, valueWei })
+
+    // Refresh DB pot
+    try { await upsertGameRow(id) } catch {}
 
     return NextResponse.json({ ok: true, txHash: hash, status: receipt.status }, { status: 200 })
   } catch (err: any) {

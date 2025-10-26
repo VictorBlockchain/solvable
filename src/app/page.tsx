@@ -33,6 +33,13 @@ function mapStatus(statusNum: number): 'active' | 'solved' | 'voting' {
   return 'voting'
 }
 
+function mapDbStatus(status: string): 'active' | 'solved' | 'voting' {
+  const s = status.toLowerCase()
+  if (s === 'active' || s === 'verification_pending') return s === 'active' ? 'active' : 'voting'
+  if (s === 'solved' || s === 'archived') return 'solved'
+  return 'voting'
+}
+
 export default function Home() {
   const [puzzles, setPuzzles] = useState<Puzzle[]>([])
   const [filteredPuzzles, setFilteredPuzzles] = useState<Puzzle[]>([])
@@ -47,11 +54,46 @@ export default function Home() {
     const fetchPuzzles = async () => {
       try {
         setLoading(true)
-        const idsRes = await fetch('/api/x402/games?start=0&limit=50')
-        const idsJson = await idsRes.json()
-        const ids: number[] = idsJson.ids || []
+        // Prefer DB-backed endpoint for status and fields
+        try {
+          const res = await fetch('/api/x402/db/games?status=all&start=0&limit=50')
+          const json = await res.json()
+          if (res.ok && Array.isArray(json.games) && json.games.length > 0) {
+            const games: Puzzle[] = json.games.map((g: any) => ({
+              id: String(g.id),
+              title: (g.puzzle || '').slice(0, 80) || `Puzzle #${g.id}`,
+              description: g.puzzle || '',
+              difficulty: 'medium',
+              prizePot: weiToSei(g.pot || '0'),
+              submissionFee: g.requireSubmissionFee ? weiToSei(g.entryFee || '0') : 0,
+              proposer: g.proposer || '0x0000000000000000000000000000000000000000',
+              proposerPercentage: 10,
+              tags: [],
+              submissions: 0,
+              status: mapDbStatus(g.status || 'active'),
+              createdAt: new Date().toISOString(),
+            }))
+            setPuzzles(games)
+            return
+          }
+        } catch {}
+
+        // Fallback: old flow via ids + on-chain detail
+        let ids: string[] = []
+        try {
+          const idsRes = await fetch('/api/x402/games?start=0&limit=50')
+          const idsJson = await idsRes.json()
+          ids = (idsJson.ids || []).map((x: any) => String(x))
+        } catch {}
+        if (!ids || ids.length === 0) {
+          try {
+            const propRes = await fetch('/api/x402/proposals?start=0&limit=50')
+            const propJson = await propRes.json()
+            ids = (propJson.ids || []).map((x: any) => String(x))
+          } catch {}
+        }
         const games = await Promise.all(
-          ids.map(async (id) => {
+          (ids || []).map(async (id) => {
             const res = await fetch(`/api/x402/games/${id}`)
             const json = await res.json()
             const g = json.game
@@ -119,11 +161,47 @@ export default function Home() {
     // Trigger a refresh
     try {
       setLoading(true)
-      const idsRes = await fetch('/api/x402/games?start=0&limit=50')
-      const idsJson = await idsRes.json()
-      const ids: number[] = idsJson.ids || []
+      // Prefer DB-backed endpoint first to get all statuses
+      try {
+        const res = await fetch('/api/x402/db/games?status=all&start=0&limit=50')
+        const json = await res.json()
+        if (res.ok && Array.isArray(json.games)) {
+          const games: Puzzle[] = json.games.map((g: any) => ({
+            id: String(g.id),
+            title: (g.puzzle || '').slice(0, 80) || `Puzzle #${g.id}`,
+            description: g.puzzle || '',
+            difficulty: 'medium',
+            prizePot: weiToSei(g.pot || '0'),
+            submissionFee: g.requireSubmissionFee ? weiToSei(g.entryFee || '0') : 0,
+            proposer: g.proposer || '0x0000000000000000000000000000000000000000',
+            proposerPercentage: 10,
+            tags: [],
+            submissions: 0,
+            status: mapDbStatus(g.status || 'active'),
+            createdAt: new Date().toISOString(),
+          }))
+          setPuzzles(games)
+          return
+        }
+      } catch {}
+
+      let ids: string[] = []
+      try {
+        const idsRes = await fetch('/api/x402/games?start=0&limit=50')
+        const idsJson = await idsRes.json()
+        ids = (idsJson.ids || []).map((x: any) => String(x))
+      } catch {}
+
+      if (!ids || ids.length === 0) {
+        try {
+          const propRes = await fetch('/api/x402/proposals?start=0&limit=50')
+          const propJson = await propRes.json()
+          ids = (propJson.ids || []).map((x: any) => String(x))
+        } catch {}
+      }
+
       const games = await Promise.all(
-        ids.map(async (id) => {
+        (ids || []).map(async (id) => {
           const res = await fetch(`/api/x402/games/${id}`)
           const json = await res.json()
           const g = json.game

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Address, decodeEventLog } from 'viem'
-import { sendContractTx, GOBIT_CONTRACT_ADDRESS } from '@/lib/onchain'
-import { GoBitAbi } from '@/lib/abi/gobit'
+import { sendContractTx, SOLVABLE_CONTRACT_ADDRESS } from '@/lib/onchain'
+import { GoBitAbi } from '@/lib/abi/solvable'
+import { upsertGameRow } from '@/lib/indexer'
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
     let gameId: string | undefined
     try {
       for (const log of receipt?.logs || []) {
-        if ((log as any).address?.toLowerCase() !== GOBIT_CONTRACT_ADDRESS.toLowerCase()) continue
+        if ((log as any).address?.toLowerCase() !== SOLVABLE_CONTRACT_ADDRESS.toLowerCase()) continue
         const decoded = decodeEventLog({ abi: GoBitAbi as any, data: (log as any).data, topics: (log as any).topics }) as any
         if (decoded?.eventName === 'PuzzleProposed') {
           const raw = decoded?.args?.gameId
@@ -53,6 +54,13 @@ export async function POST(req: NextRequest) {
           gameId = idBig.toString()
           break
         }
+      }
+    } catch {}
+
+    // Ensure DB is updated immediately for UI
+    try {
+      if (gameId) {
+        await upsertGameRow(BigInt(gameId))
       }
     } catch {}
 

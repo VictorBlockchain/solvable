@@ -1,0 +1,2 @@
+npx hardhat run scripts/deploy-solvable.js --network localhost
+const contract = await ethers.getContractAt("Solvable", "0x8464135c8F25Da09e49BC8782676a84730C318bC")

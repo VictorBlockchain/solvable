@@ -2,7 +2,7 @@ import dotenv from 'dotenv'
 dotenv.config({ path: '.env.local' })
 import { Address, Hex, createPublicClient, createWalletClient, defineChain, encodeFunctionData, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { GoBitAbi } from '@/lib/abi/gobit'
+import { SolvableAbi } from '@/lib/abi/solvable'
 
 function getEnv(name: string, fallback?: string) {
   const v = process.env[name]
@@ -13,7 +13,7 @@ function getEnv(name: string, fallback?: string) {
 
 export const CHAIN_ID = Number(process.env.CHAIN_ID || process.env.NEXT_PUBLIC_CHAIN_ID || 31337)
 export const RPC_URL = getEnv('RPC_URL', process.env.NEXT_PUBLIC_RPC_URL || 'http://127.0.0.1:8545')
-export const GOBIT_CONTRACT_ADDRESS = getEnv('GOBIT_CONTRACT_ADDRESS', '0x0000000000000000000000000000000000000000') as Address
+export const SOLVABLE_CONTRACT_ADDRESS = getEnv('SOLVABLE_CONTRACT_ADDRESS', '0x0000000000000000000000000000000000000000') as Address
 
 const chain = defineChain({
   id: CHAIN_ID,
@@ -40,15 +40,15 @@ export async function sendContractTx({
   args: readonly unknown[]
   valueWei?: bigint
 }) {
-  const data = encodeFunctionData({ abi: GoBitAbi as any, functionName: functionName as any, args: args as any })
+  const data = encodeFunctionData({ abi: SolvableAbi as any, functionName: functionName as any, args: args as any })
   const wallet = getWalletClient()
-  const hash = await wallet.sendTransaction({ to: GOBIT_CONTRACT_ADDRESS, data, value: valueWei })
+  const hash = await wallet.sendTransaction({ to: SOLVABLE_CONTRACT_ADDRESS, data, value: valueWei })
   const receipt = await publicClient.waitForTransactionReceipt({ hash })
   return { hash, receipt }
 }
 
 export async function readContract<T = unknown>({ functionName, args }: { functionName: string; args?: readonly unknown[] }) {
-  return publicClient.readContract({ abi: GoBitAbi, address: GOBIT_CONTRACT_ADDRESS, functionName: functionName as any, args: (args || []) as any }) as Promise<T>
+  return publicClient.readContract({ abi: SolvableAbi, address: SOLVABLE_CONTRACT_ADDRESS, functionName: functionName as any, args: (args || []) as any }) as Promise<T>
 }
 
 export async function getGame(id: bigint) {

@@ -63,3 +63,6 @@ id_ed25519.pub
 *.secret
 *.priv
 *.private
+
+# ignore deployment script with embedded private key
+scripts/deploy-solvable.js

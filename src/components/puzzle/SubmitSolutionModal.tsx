@@ -6,7 +6,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Upload, FileText, Zap } from 'lucide-react'
+import { Upload, FileText, Zap, Wallet } from 'lucide-react'
+import { useAccount } from 'wagmi'
+import { useWeb3Modal } from '@web3modal/wagmi/react'
 
 interface SubmitSolutionModalProps {
   open: boolean
@@ -27,20 +29,29 @@ export function SubmitSolutionModal({
 }: SubmitSolutionModalProps) {
   const [solution, setSolution] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { isConnected, address } = useAccount()
+  const web3Modal = useWeb3Modal()
 
   const handleSubmit = async () => {
     if (!solution.trim()) return
+    // Require wallet connection before submission
+    if (!isConnected) {
+      await web3Modal.open()
+      return
+    }
     try {
       setIsSubmitting(true)
+      // Normalize by removing whitespace before submission
+      const normalized = solution.replace(/\s+/g, '')
       const res = await fetch('/api/x402/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId, solution })
+        body: JSON.stringify({ gameId, solution: normalized })
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Failed to submit')
 
-      onSubmitSolution(solution)
+      onSubmitSolution(normalized)
       setSolution('')
       onOpenChange(false)
     } catch (e) {
@@ -80,19 +91,38 @@ export function SubmitSolutionModal({
             </div>
           </div>
 
+          {/* Wallet Connection Requirement */}
+          {!isConnected && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-yellow-900 text-sm">
+                  <Wallet className="h-4 w-4" />
+                  Connect your wallet to submit a solution.
+                </div>
+                <Button 
+                  onClick={() => web3Modal.open()} 
+                  variant="outline" 
+                  className="border-yellow-300 text-yellow-800 hover:bg-yellow-100"
+                >
+                  Connect Wallet
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Solution Input */}
           <div className="grid gap-2">
             <Label htmlFor="solution">Your Solution</Label>
             <Textarea
               id="solution"
-              placeholder="Enter your solution, proof, or code here. Be detailed and clear in your explanation..."
+              placeholder="Enter your solution; whitespace will be removed before submission"
               value={solution}
               onChange={(e) => setSolution(e.target.value)}
               rows={8}
               className="font-mono text-sm"
             />
             <p className="text-xs text-gray-500">
-              You can also upload a file with your solution if needed.
+              We normalize by removing spaces and other whitespace before submitting.
             </p>
           </div>
 
@@ -143,7 +173,7 @@ export function SubmitSolutionModal({
             ) : (
               <>
                 <Zap className="h-4 w-4 mr-2" />
-                Submit Solution
+                {isConnected ? 'Submit Solution' : 'Connect Wallet to Submit'}
               </>
             )}
           </Button>

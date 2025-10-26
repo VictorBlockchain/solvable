@@ -38,6 +38,13 @@ export function PuzzleCard({ puzzle }: PuzzleCardProps) {
     }
   }
 
+  // Encode numeric id to base36 for shorter, shareable URLs
+  let shortId = String(puzzle.id)
+  try {
+    const bi = BigInt(String(puzzle.id))
+    shortId = bi.toString(36)
+  } catch {}
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 border-gray-200 hover:border-teal-300 overflow-hidden">
       <div className="p-6">
@@ -114,7 +121,7 @@ export function PuzzleCard({ puzzle }: PuzzleCardProps) {
       </div>
 
       <CardFooter className="p-4 pt-0">
-        <Link href={`/puzzle/${puzzle.id}`} className="w-full">
+        <Link href={`/puzzle/${shortId}`} className="w-full">
           <Button 
             className="w-full bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600 text-white font-mono text-sm transition-all duration-300 group-hover:shadow-md"
           >

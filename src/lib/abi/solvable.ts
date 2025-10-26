@@ -1,7 +1,7 @@
 // Minimal ABI for GoBit contract interactions used by server routes
 // Keep this aligned with contracts/GoBit.sol
 
-export const GoBitAbi = [
+export const SolvableAbi = [
   // Events (optional for decoding)
   {
     type: 'event',

@@ -10,8 +10,11 @@ import {
   CheckCircle, 
   Clock, 
   Vote,
-  AlertCircle
+  AlertCircle,
+  Wallet
 } from 'lucide-react'
+import { useAccount } from 'wagmi'
+import { useWeb3Modal } from '@web3modal/wagmi/react'
 
 interface VotingPanelProps {
   gameId: string
@@ -27,11 +30,18 @@ export function VotingPanel({
   onVoted
 }: VotingPanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { isConnected } = useAccount()
+  const web3Modal = useWeb3Modal()
   const timeRemaining = votingDeadline ? new Date(votingDeadline).getTime() - new Date().getTime() : 0
   const hoursRemaining = Math.max(0, Math.floor(timeRemaining / (1000 * 60 * 60)))
   const isVotingClosed = votingDeadline ? timeRemaining <= 0 : false
 
   const castVote = async (approve: boolean) => {
+    // Require wallet connection before voting
+    if (!isConnected) {
+      await web3Modal.open()
+      return
+    }
     try {
       setIsSubmitting(true)
       const res = await fetch('/api/x402/vote', {
@@ -78,12 +88,29 @@ export function VotingPanel({
           )}
         </div>
 
+        {/* Wallet Connection Requirement */}
+        {!isConnected && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-yellow-900 text-sm">
+              <Wallet className="h-4 w-4" />
+              Connect your wallet to vote on this proposal.
+            </div>
+            <Button 
+              onClick={() => web3Modal.open()} 
+              variant="outline" 
+              className="border-yellow-300 text-yellow-800 hover:bg-yellow-100"
+            >
+              Connect Wallet
+            </Button>
+          </div>
+        )}
+
         {/* Voting Actions */}
         {!hasVoted && !isVotingClosed ? (
           <div className="grid grid-cols-2 gap-3">
             <Button 
               onClick={() => castVote(true)} 
-              disabled={isSubmitting}
+              disabled={!isConnected || isSubmitting}
               className="bg-gradient-to-r from-teal-500 to-green-500 hover:from-teal-600 hover:to-green-600 text-white"
             >
               <Vote className="h-4 w-4 mr-2" />
@@ -92,7 +119,7 @@ export function VotingPanel({
             <Button 
               onClick={() => castVote(false)} 
               variant="outline" 
-              disabled={isSubmitting}
+              disabled={!isConnected || isSubmitting}
               className="border-orange-300 text-orange-700 hover:bg-orange-50"
             >
               <Vote className="h-4 w-4 mr-2" />

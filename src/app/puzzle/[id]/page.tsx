@@ -38,10 +38,37 @@ function mapStatus(s: number): 'active' | 'voting' | 'solved' {
   }
 }
 
+// Decode route param: support numeric and base36 short IDs
+function decodeIdToNumeric(idStr: string): string {
+  // Try numeric BigInt
+  try {
+    const bi = BigInt(idStr)
+    return bi.toString(10)
+  } catch {}
+  // Fallback: base36 manual decode to BigInt without for-of (ESLint compliance)
+  const s = idStr.toLowerCase()
+  let result = BigInt(0)
+  for (let i = 0; i < s.length; i += 1) {
+    const chCode = s.charCodeAt(i)
+    let idx = -1
+    // 0-9
+    if (chCode >= 48 && chCode <= 57) {
+      idx = chCode - 48
+    } else if (chCode >= 97 && chCode <= 122) { // a-z
+      idx = chCode - 87 // 'a' (97) -> 10
+    }
+    if (idx === -1) throw new Error('Invalid puzzle id')
+    result = result * BigInt(36) + BigInt(idx)
+  }
+  return result.toString(10)
+}
+
 export default function PuzzleDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const puzzleId = params.id as string
+  const routeId = params.id as string
+  let numericId = routeId
+  try { numericId = decodeIdToNumeric(routeId) } catch {}
 
   const [puzzle, setPuzzle] = useState<Puzzle | undefined>(undefined)
   const [loading, setLoading] = useState(true)
@@ -55,16 +82,16 @@ export default function PuzzleDetailPage() {
     const fetchGame = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`/api/x402/games/${puzzleId}`)
+        const res = await fetch(`/api/x402/games/${numericId}`)
         const json = await res.json()
         if (!res.ok) throw new Error(json.error || 'Failed to load game')
         const g = json.game || json // support either shape
         const puzzleText: string = g.puzzle || ''
         const [firstLine, ...rest] = puzzleText.split('\n')
-        const title = firstLine || `Puzzle ${puzzleId}`
+        const title = firstLine || `Puzzle ${numericId}`
         const description = rest.join('\n').trim()
         const mapped: Puzzle = {
-          id: puzzleId,
+          id: numericId,
           title,
           description,
           difficulty: 'medium',
@@ -88,12 +115,12 @@ export default function PuzzleDetailPage() {
       }
     }
     fetchGame()
-  }, [puzzleId])
+  }, [routeId])
 
   const handleSubmitSolution = (solution: string) => {
     const newSubmission: Submission = {
       id: (submissions.length + 1).toString(),
-      puzzleId: puzzleId,
+      puzzleId: numericId,
       submitter: '0x742d35Cc6634C0532925a3b8D4C9db96C4b4Db45',
       solution,
       timestamp: new Date().toISOString(),
@@ -108,7 +135,7 @@ export default function PuzzleDetailPage() {
         <div className="text-center">
           <Brain className="h-16 w-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Puzzle</h2>
-          <p className="text-gray-600 mb-4">Fetching on-chain state for game {puzzleId}...</p>
+          <p className="text-gray-600 mb-4">Fetching on-chain state for game {numericId}...</p>
         </div>
       </div>
     )
@@ -331,7 +358,7 @@ export default function PuzzleDetailPage() {
                 <TabsContent value="voting">
                   {puzzle.status === 'voting' ? (
                     <VotingPanel
-                      gameId={puzzleId}
+                      gameId={numericId}
                       votingDeadline={puzzle.votingDeadline || ''}
                       hasVoted={hasVoted}
                       onVoted={() => setHasVoted(true)}
@@ -436,7 +463,7 @@ export default function PuzzleDetailPage() {
         onSubmitSolution={handleSubmitSolution}
         submissionFee={puzzle.submissionFee}
         puzzleTitle={puzzle.title}
-        gameId={puzzleId}
+        gameId={numericId}
       />
     </div>
   )

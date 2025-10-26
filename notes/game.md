@@ -96,3 +96,4 @@ Extend: Fork for "Agent Forge" mode—propose agent blueprints as puzzles.
 
 This is the gambit: Stake compute, forge proofs, defy incompleteness. Questions? Submit a challenge—pot's waiting. 
 
+https://github.com/dhaiwat10/x402-sovereign

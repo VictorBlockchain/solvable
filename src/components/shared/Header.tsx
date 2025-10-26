@@ -11,13 +11,22 @@ import {
   X, 
   Zap
 } from 'lucide-react'
-import { useAccount } from 'wagmi'
+import { useAccount, useDisconnect } from 'wagmi'
 import { useWeb3Modal } from '@web3modal/wagmi/react'
+import { 
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu'
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const { address, isConnected } = useAccount()
+  const { disconnect } = useDisconnect()
   const web3Modal = useWeb3Modal()
 
   useEffect(() => {
@@ -78,21 +87,36 @@ export function Header() {
 
           {/* Right Section */}
           <div className="flex items-center space-x-4">
-            {/* Wallet Connection */}
-            <Button
-              onClick={handleConnectWallet}
-              variant={isConnected ? 'default' : 'outline'}
-              className={`hidden sm:flex items-center space-x-2 ${
-                isConnected 
-                  ? 'bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600' 
-                  : 'border-gray-300 hover:border-teal-500'
-              }`}
-            >
-              <Wallet className="h-4 w-4" />
-              <span className="font-mono text-sm">
-                {shortAddress}
-              </span>
-            </Button>
+            {/* Wallet Connection (Desktop) */}
+            {isConnected ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant={'default'}
+                    className={`hidden sm:flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600`}
+                  >
+                    <Wallet className="h-4 w-4" />
+                    <span className="font-mono text-sm">{shortAddress}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel className="font-mono text-xs">Wallet</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => disconnect()} variant="destructive">
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                onClick={handleConnectWallet}
+                variant={'outline'}
+                className={`hidden sm:flex items-center space-x-2 border-gray-300 hover:border-teal-500`}
+              >
+                <Wallet className="h-4 w-4" />
+                <span className="font-mono text-sm">{shortAddress}</span>
+              </Button>
+            )}
 
             {/* Mobile Menu Button */}
             <Button
@@ -131,20 +155,36 @@ export function Header() {
               >
                 Docs
               </Link>
-              <Button
-                onClick={handleConnectWallet}
-                variant={isConnected ? 'default' : 'outline'}
-                className={`w-full justify-center ${
-                  isConnected 
-                    ? 'bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600' 
-                    : 'border-gray-300 hover:border-teal-500'
-                }`}
-              >
-                <Wallet className="h-4 w-4 mr-2" />
-                <span className="font-mono text-sm">
-                  {shortAddress}
-                </span>
-              </Button>
+              {/* Wallet Connection (Mobile) */}
+              {isConnected ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant={'default'}
+                      className={`w-full justify-center bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600`}
+                    >
+                      <Wallet className="h-4 w-4 mr-2" />
+                      <span className="font-mono text-sm">{shortAddress}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel className="font-mono text-xs">Wallet</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => disconnect()} variant="destructive">
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  onClick={handleConnectWallet}
+                  variant={'outline'}
+                  className={`w-full justify-center border-gray-300 hover:border-teal-500`}
+                >
+                  <Wallet className="h-4 w-4 mr-2" />
+                  <span className="font-mono text-sm">{shortAddress}</span>
+                </Button>
+              )}
             </nav>
           </div>
         )}

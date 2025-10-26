@@ -1,10 +1,13 @@
 const hre = require("hardhat")
 
 async function main() {
-  const { ethers } = hre
-  const signers = await ethers.getSigners()
-  const deployer = signers[1] // account #1 (second account)
+  const { ethers, network } = hre
+  // Use the provided private key explicitly on the selected network
+  const privateKey = '0x728f315a9c0610b535b78fc4ae869c0effb74ab602e33621da73c01511f9137a'
+  const deployer = new ethers.Wallet(privateKey, ethers.provider)
   const deployerAddress = await deployer.getAddress()
+
+  console.log("Network:", network.name)
   console.log("Deploying Solvable with:", deployerAddress)
 
   const Solvable = await ethers.getContractFactory("Solvable", deployer)

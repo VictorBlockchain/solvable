@@ -63,7 +63,7 @@ contract Solvable is ReentrancyGuard, AccessControl, Pausable {
     mapping(uint256 => mapping(address => string)) public submittedSolutions;
     mapping(uint256 => uint256) public emergencyWithdrawTimelock;
 
-    mapping(address => uint64) public nextIdByProposer;
+    uint256 public nextGameId = 1; // Sequential game ID counter starting from 1
     address public houseAddress;
     uint256 public houseCutPercentage = 500; // 5% in basis points
     uint256 public voteThresholdDefault = 5;
@@ -160,10 +160,9 @@ contract Solvable is ReentrancyGuard, AccessControl, Pausable {
         
         _validatePuzzleParams(_puzzleType, _solutionHash, _oracleParams);
         
-        // Composite ID: (proposer address << 64) | per-proposer counter
-        uint64 local = nextIdByProposer[msg.sender] + 1;
-        nextIdByProposer[msg.sender] = local;
-        gameId = (uint256(uint160(msg.sender)) << 64) | uint256(local);
+        // Simple sequential ID generation
+        gameId = nextGameId;
+        nextGameId++;
         uint256 threshold = _voteThreshold == 0 ? voteThresholdDefault : _voteThreshold;
         games[gameId] = Game({
             puzzle: _puzzle,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendContractTx } from '@/lib/onchain'
+import { upsertGameRow } from '@/lib/indexer'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,10 @@ export async function POST(req: NextRequest) {
 
     const args: [bigint, boolean] = [BigInt(gameId), approve]
     const { hash, receipt } = await sendContractTx({ functionName: 'voteOnProposal', args })
+
+    // Refresh DB status (may remain pending until threshold met)
+    try { await upsertGameRow(BigInt(gameId)) } catch {}
+
     return NextResponse.json({ ok: true, txHash: hash, status: receipt.status }, { status: 200 })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Unknown error' }, { status: 500 })

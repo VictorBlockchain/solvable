@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Address } from 'viem'
 import { sendContractTx, getGame } from '@/lib/onchain'
+import { upsertGameRow } from '@/lib/indexer'
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,9 +26,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'ERC20 submissions not supported by server wallet yet' }, { status: 400 })
     }
 
+    // Normalize solution by removing all whitespace prior to on-chain submission
+    const normalizedSolution = solution.replace(/\s+/g, '')
+
     const valueWei = game.requireSubmissionFee ? game.entryFee : undefined
-    const args: [bigint, string] = [id, solution]
+    const args: [bigint, string] = [id, normalizedSolution]
     const { hash, receipt } = await sendContractTx({ functionName: 'submitSolution', args, valueWei })
+
+    // Reflect status changes immediately
+    try { await upsertGameRow(id) } catch {}
 
     return NextResponse.json({ ok: true, txHash: hash, status: receipt.status }, { status: 200 })
   } catch (err: any) {

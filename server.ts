@@ -9,7 +9,7 @@ import next from 'next';
 import { startIndexer } from '@/lib/indexer'
 
 const dev = process.env.NODE_ENV !== 'production';
-const currentPort = 3000;
+const currentPort = Number(process.env.PORT || 3000);
 const hostname = '127.0.0.1';
 
 // Custom server with Socket.IO integration
