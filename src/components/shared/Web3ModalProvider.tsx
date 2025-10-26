@@ -12,6 +12,10 @@ export default function Web3ModalProvider({ children }: { children: React.ReactN
   React.useEffect(() => {
     if (web3ModalInitialized) return
     web3ModalInitialized = true
+    if (!projectId) {
+      console.warn('[Web3Modal] Missing NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID. Wallet options will not appear. Set this env var to your WalletConnect Cloud Project ID.')
+      return
+    }
     createWeb3Modal({
       wagmiConfig,
       projectId,
