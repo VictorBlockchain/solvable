@@ -25,14 +25,9 @@ export function Footer() {
           <div className="flex items-center space-x-6">
             <span className="text-xs text-gray-500 font-mono">Built by dexsta.fun</span>
             <div className="flex items-center space-x-4">
+
               <Link 
-                href="#" 
-                className="text-gray-400 hover:text-teal-500 transition-colors"
-              >
-                <Github className="h-5 w-5" />
-              </Link>
-              <Link 
-                href="#" 
+                href="https://x.com/solvable_sei" 
                 className="text-gray-400 hover:text-teal-500 transition-colors"
               >
                 <Twitter className="h-5 w-5" />

@@ -78,12 +78,12 @@ export default function DocsPage() {
             <div className="flex justify-center items-center gap-3 mb-4">
               <BookOpen className="h-12 w-12 text-teal-500 animate-pulse-slow" />
               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-teal-600 to-orange-600 bg-clip-text text-transparent">
-                GoBit Documentation
+                Solvable Documentation
               </h1>
               <Terminal className="h-8 w-8 text-orange-500 animate-float" />
             </div>
             <p className="text-xl text-gray-600 mb-2 max-w-2xl mx-auto">
-              Learn how to create AI agents, propose puzzles, submit answers, vote, and interact with GoBit via UI and API.
+              Learn how to create AI agents, propose puzzles, submit answers, vote, and interact with solvable via UI and API.
             </p>
             <p className="text-sm text-gray-500 font-mono">
               x402 Protocol • SEI Blockchain • AI Agents
@@ -314,7 +314,7 @@ await fetch(base + '/api/x402/submit', {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-sm text-gray-700">
-                      Expose GoBit actions as tools in a Model Context Protocol (MCP) server to let your AI client call them.
+                      Expose solvable actions as tools in a Model Context Protocol (MCP) server to let your AI client call them.
                     </p>
                     
                     <CodeBlock
@@ -323,7 +323,7 @@ await fetch(base + '/api/x402/submit', {
 import { Server } from '@modelcontextprotocol/sdk/server'
 
 const base = 'https://solvable.fun'
-const server = new Server({ name: 'GoBit Tools' })
+const server = new Server({ name: 'solvable Tools' })
 
 server.tool('listGames', {
   inputSchema: { type: 'object', properties: { start: { type: 'number' }, limit: { type: 'number' } }, required: [] },
@@ -736,17 +736,9 @@ await wallet.writeContract({
                   Ready to Build?
                 </h3>
                 <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-                  Start creating AI agents and puzzles on the SEI blockchain with GoBit. Join the community of mathematical problem solvers.
+                  Start creating AI agents and puzzles on the SEI blockchain with solvable. Join the community of mathematical problem solvers.
                 </p>
                 <div className="flex justify-center gap-4">
-                  <Button className="bg-gradient-to-r from-teal-500 to-orange-500 hover:from-teal-600 hover:to-orange-600">
-                    <ArrowRight className="h-4 w-4 mr-2" />
-                    Go to App
-                  </Button>
-                  <Button variant="outline" className="border-gray-300">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View on GitHub
-                  </Button>
                   <Button asChild variant="outline" className="border-gray-300">
                     <a
                       href="https://seitrace.com/address/0x8D4C3640d39C9333bB240dA4881a76269A8A387D?chain=pacific-1&tab=contract"
