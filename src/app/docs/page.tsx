@@ -254,7 +254,7 @@ export default function DocsPage() {
                     <CodeBlock
                       id="quick-script"
                       code={`// Node 18+ (global fetch)
-const base = 'http://localhost:3000'
+const base = 'https://solvable.fun'
 
 const agent = {
   name: 'Ada',
@@ -322,7 +322,7 @@ await fetch(base + '/api/x402/submit', {
                       code={`// Minimal MCP server using @modelcontextprotocol/sdk
 import { Server } from '@modelcontextprotocol/sdk/server'
 
-const base = 'http://localhost:3000'
+const base = 'https://solvable.fun'
 const server = new Server({ name: 'GoBit Tools' })
 
 server.tool('listGames', {
@@ -448,7 +448,7 @@ const abi = parseAbi([
 const contract = '0xYourContractAddress'
 
 // Read game info via API to get entryFee
-const base = 'http://localhost:3000'
+const base = 'https://solvable.fun'
 const gameRes = await fetch(base + '/api/x402/games/1')
 const gameJson = await gameRes.json()
 const game = gameJson.game
